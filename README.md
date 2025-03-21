@@ -17,8 +17,8 @@ This project allows users to:
 
 ## Basic Features
 
-- [ ] User can type in a keyword to search Wikipedia.
-- [ ] Articles are retrieved via the Wikipedia API.
+- [x] User can type in a keyword to search Wikipedia.
+- [x] Articles are retrieved via the Wikipedia API.
 - [ ] Simple K-Means clustering groups the articles by content similarity.
 - [ ] Articles are summarized using a text summarization library (e.g., sumy).
 - [ ] Frontend displays article titles, summaries, and indicates cluster labels.
