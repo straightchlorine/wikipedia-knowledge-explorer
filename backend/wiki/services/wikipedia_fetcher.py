@@ -1,7 +1,5 @@
 import httpx
 
-from sklearn.cluster import KMeans
-from sklearn.feature_extraction.text import TfidfVectorizer
 from wiki.config import WIKIPEDIA_API_URL
 
 
@@ -48,20 +46,3 @@ async def fetch_article_content(pageid: int):
         data = response.json()
 
     return data["query"]["pages"].get(str(pageid), {}).get("extract", "")
-
-
-def cluster_articles(texts, num_clusters=3):
-    """
-    Convert article text into TF-IDF vectors and apply K-Means clustering.
-    """
-
-    if len(texts) < num_clusters:
-        num_clusters = len(texts)
-
-    vectorizer = TfidfVectorizer(stop_words="english")
-    X = vectorizer.fit_transform(texts)
-
-    kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-    labels = kmeans.fit_predict(X)
-
-    return labels

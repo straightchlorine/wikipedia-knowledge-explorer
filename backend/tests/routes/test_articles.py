@@ -16,14 +16,19 @@ def test_root_endpoint():
 @patch("wiki.routes.articles.fetch_wikipedia_articles")
 def test_search_articles_success(mock_fetch):
     """Test the articles search endpoint with successful response."""
-
     # mock result
-    mock_fetch.return_value = ["Article 1", "Article 2"]
+    mock_fetch.return_value = [
+        {"title": "Article 1", "pageid": 12345},
+        {"title": "Article 2", "pageid": 67890},
+    ]
 
     response = client.get("/articles/?query=test")
 
     assert response.status_code == 200
-    assert response.json() == {"query": "test", "articles": ["Article 1", "Article 2"]}
+    assert response.json() == {
+        "query": "test",
+        "articles": ["Article 1", "Article 2"],
+    }
 
 
 @patch("wiki.routes.articles.fetch_wikipedia_articles")

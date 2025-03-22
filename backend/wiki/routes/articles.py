@@ -1,7 +1,9 @@
 import asyncio
-from fastapi import APIRouter, HTTPException, Query
+
+from fastapi import APIRouter, HTTPException, Path, Query
+
+from wiki.services.clustering import cluster_articles
 from wiki.services.wikipedia_fetcher import (
-    cluster_articles,
     fetch_article_content,
     fetch_wikipedia_articles,
 )
@@ -26,6 +28,30 @@ async def search_articles(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/content/{page_id}")
+async def get_article_content(
+    page_id: int = Path(
+        ...,
+        title="Page ID",
+        description="Wikipedia page ID to fetch content for",
+    ),
+):
+    """
+    Fetch the full content of a Wikipedia article using its page ID.
+
+    Args:
+        page_id (int): The Wikipedia page ID to fetch content for
+
+    Returns:
+        A JSON object containing the article's page ID and its contents
+    """
+    try:
+        content = await fetch_article_content(page_id)
+        return {"pageid": page_id, "content": content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/clusters")
 async def cluster_articles_endpoint(
     query: str = Query(
@@ -33,7 +59,9 @@ async def cluster_articles_endpoint(
     ),
 ):
     """
-    Fetch Wikipedia articles, retrieve their full content, and cluster them using TF-IDF and K-Means.
+    Fetch Wikipedia articles, retrieve their full content, and cluster them
+    using vectorization and K-Means.
+
     Returns the articles along with their assigned cluster labels.
     """
     try:
@@ -45,7 +73,7 @@ async def cluster_articles_endpoint(
         contents = await asyncio.gather(*tasks)
 
         # convert articles to tf-idf vectors and cluster them
-        labels = cluster_articles(contents, num_clusters=3)
+        labels = cluster_articles(contents, max_clusters=10)
 
         # attach cluster labels to each article in the result
         for i, article in enumerate(articles):
