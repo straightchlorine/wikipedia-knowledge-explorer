@@ -9,36 +9,85 @@ Backend is based on FastAPI and Wikipedia API to retrieve articles.
 You can deploy the backend either locally using `uvicorn` or as a container using Docker.
 
 ---
-#### Deploy locally
+##### Deploy locally
 
 Following command will start the FastAPI server on the localhost on a default port `8000`:
 
 ```bash
+$ pip install -r requirements.txt
 $ uvicorn wiki.main:wiki_exp
 ```
 
 You can adjust it to run on a different port, host or just enable `--reload` flag for development. You can see available options in the [uvicorn documentation](https://www.uvicorn.org/settings/).
 
 ---
-#### Deploy in a container
+##### Deploy in a container
 
-Otherwise, you can build and run the Docker container:
+You can build and run the Docker container like this:
 
 ```bash
 $ docker build -t wiki-backend .
-$ docker run -p 8000:8000 wiki-backend
+$ docker run --rm -p 8000:8000 wiki-backend
 ```
+
+---
+### GPU Acceleration
+
+In the basic implementation, to process text into vectors a `SentenceTransformer` is used with `all-MiniLM-L6-v2` as a default model to create embeddings. This process is pretty CPU heavy, so it can take a bit of time if you are hosting the application on a system with a weaker processing unit - especially if it does not have many cores.
+
+To speed the process up, you can utilise following deployment options that allow for GPU acceleration of those calculations.
+
+---
+#### Deploy locally
+
+If you have NVIDIA CUDA correctly installed on your machine, you can just install required dependencies and start the backend:
+
+```bash
+$ uvicorn wiki.main:wiki_exp
+```
+
+If your devices are CUDA compatible and accessible, they will be used as the device for calculations. You can check accessiblity of your graphic card(s) using the `nvidia-smi` command.
+
+---
+#### Deploy in a container
+
+If you want to use Docker and have the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation) installed you can use following steps to deploy as a container with GPU support:
+
+```bash
+$ docker build -f Dockerfile.gpu . -t wiki-backend:gpu
+```
+
+After that you just need to start it (options are according to NVIDIA's recommendation used pytorch image):
+
+```bash
+$ docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -p 8001:8000 --rm wiki-explorer:gpu
+```
+
+##### Memory concerns
+Dockefile.gpu file by default utilises `nvcr.io/nvidia/pytorch:23.12-py3` for the best possible performance and optimized CUDA support. This is a large image that will impact the size of your container greatly. It's used, since it leaved door open for further features, but if memory is one of your concerns, you can also use `python:3.13-slim` and install following dependencies within the container:
+
+```bash
+# just replace current pip lines with this one in Dockerfile.gpu along with the image used
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 && \
+    pip install --upgrade 'optree>=0.13.0'
+```
+
+That way you can avoid large container size, while still providing GPU acceleration. In my private testing I have **not** seen any meaningful differences in the performance for a small scale clustering tasks.
 
 ---
 ### Testing
 
-For the testing `pytest` is used, so to run all of the backend tests:
+Project uses `pytest`, so the following will run all the tests:
 
 ```bash
 $ pytest -v tests
 ```
+
 ---
 ### Example usage:
+
+Searching for the articles:
 
 ```bash
 $ curl "http://localhost:8000/articles/?query=Python" | jq
@@ -53,3 +102,52 @@ $ curl "http://localhost:8000/articles/?query=Python" | jq
     ]
 }
 ```
+
+---
+Querying for the contents for a given article:
+
+```bash
+$ curl "http://localhost:8000/articles/content/23862" | jq
+{
+  "pageid": 23862,
+  "content": "Python is a high-level, general-purpose programming language. Its design philosophy ..."
+}
+```
+
+---
+Querying for the articles and its clusters:
+
+```bash
+$ curl "http://localhost:8000/articles/clusters?query=Python" | jq
+{
+  "query": "Python",
+  "articles": [
+    {
+      "title": "Python (programming language)",
+      "pageid": 23862,
+      "cluster": 2
+    },
+    {
+      "title": "Python",
+      "pageid": 46332325,
+      "cluster": 1
+    },
+    {
+      "title": "Monty Python",
+      "pageid": 18942,
+      "cluster": 0
+    },
+    {
+      "title": "Python (codename)",
+      "pageid": 53672527,
+      "cluster": 0
+    },
+    {
+      "title": "Reticulated python",
+      "pageid": 88595,
+      "cluster": 1
+    }
+  ]
+}
+```
+*Note*: clustering results **before** any meaningful summarization - for now its just first 100 letters. Better solution is on the way.
