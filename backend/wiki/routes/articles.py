@@ -16,12 +16,18 @@ async def search_articles(
     query: str = Query(
         ..., title="Search Term", description="Keyword to search Wikipedia"
     ),
+    max_results: int = Query(
+        5,
+        title="Maximum Results",
+        description="Maximum number of search results to return",
+        ge=0,
+    ),
 ):
     """
     Fetch Wikipedia article titles based on a search term.
     """
     try:
-        articles = await fetch_wikipedia_articles(query)
+        articles = await fetch_wikipedia_articles(query, max_results)
         titles = [article["title"] for article in articles]
         return {"query": query, "articles": titles}
     except Exception as e:
@@ -57,6 +63,12 @@ async def cluster_articles_endpoint(
     query: str = Query(
         ..., title="Search Term", description="Keyword to search Wikipedia"
     ),
+    max_results: int = Query(
+        5,
+        title="Maximum Results",
+        description="Maximum number of search results to return",
+        ge=0,
+    ),
 ):
     """
     Fetch Wikipedia articles, retrieve their full content, and cluster them
@@ -66,7 +78,7 @@ async def cluster_articles_endpoint(
     """
     try:
         # get the articles with title and pageid
-        articles = await fetch_wikipedia_articles(query)
+        articles = await fetch_wikipedia_articles(query, max_results)
 
         # fetch contents for each article concurrently
         tasks = [fetch_article_content(article["pageid"]) for article in articles]

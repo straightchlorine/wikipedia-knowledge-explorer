@@ -94,5 +94,5 @@ This project allows users to:
    - Maintain readability and responsive design.
 
 3. **Integration & Updates**
-   - Ensure visualization updates or re-renders when new articles are fetched.
+    - Ensure visualization updates or re-renders when new articles are fetched.
    - Coordinate with Developer 1’s UI components to share data seamlessly.

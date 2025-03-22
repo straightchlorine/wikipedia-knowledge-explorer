@@ -63,18 +63,6 @@ After that you just need to start it (options are according to NVIDIA's recommen
 $ docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -p 8001:8000 --rm wiki-explorer:gpu
 ```
 
-##### Memory concerns
-Dockefile.gpu file by default utilises `nvcr.io/nvidia/pytorch:23.12-py3` for the best possible performance and optimized CUDA support. This is a large image that will impact the size of your container greatly. It's used, since it leaved door open for further features, but if memory is one of your concerns, you can also use `python:3.13-slim` and install following dependencies within the container:
-
-```bash
-# just replace current pip lines with this one in Dockerfile.gpu along with the image used
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 && \
-    pip install --upgrade 'optree>=0.13.0'
-```
-
-That way you can avoid large container size, while still providing GPU acceleration. In my private testing I have **not** seen any meaningful differences in the performance for a small scale clustering tasks.
-
 ---
 ### Testing
 

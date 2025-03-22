@@ -1,21 +1,14 @@
-# Use NVIDIA PyTorch image or optionally Python slim
-FROM nvcr.io/nvidia/pytorch:23.12-py3 AS base
-# FROM python:3.13-slim AS base  # uncomment if using Python slim
+FROM nvcr.io/nvidia/pytorch:23.12-py3
 
 # Set working directory
 WORKDIR /wikipedia-knowledge-explorer
 
-# Copy dependency file first to leverage Docker cache
-COPY requirements-gpu.txt requirements.txt ./
+COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --upgrade 'optree>=0.13.0'
-
-# Alternative dependency installation for python:3.13-slim
-# RUN pip install --no-cache-dir -r requirements.txt \
-#     && pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 \
-#     && pip install --upgrade 'optree>=0.13.0'
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 \
+    && pip install --upgrade 'optree>=0.13.0'
 
 # Copy the application code
 COPY . .

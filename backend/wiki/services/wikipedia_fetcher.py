@@ -3,7 +3,7 @@ import httpx
 from wiki.config import WIKIPEDIA_API_URL
 
 
-async def fetch_wikipedia_articles(query: str):
+async def fetch_wikipedia_articles(query: str, max_results: int = 5):
     """
     Fetch relevant article titles and their page IDs from Wikipedia.
     """
@@ -13,7 +13,7 @@ async def fetch_wikipedia_articles(query: str):
         "srsearch": query,
         "format": "json",
         "utf8": 1,
-        "srlimit": 5,
+        "srlimit": max_results,
     }
 
     async with httpx.AsyncClient() as client:
