@@ -60,7 +60,7 @@ $ docker build -f Dockerfile.gpu . -t wiki-backend:gpu
 After that you just need to start it (options are according to NVIDIA's recommendation used pytorch image):
 
 ```bash
-$ docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -p 8001:8000 --rm wiki-explorer:gpu
+$ docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -p 8000:8000 --rm wiki-explorer:gpu
 ```
 
 ---
