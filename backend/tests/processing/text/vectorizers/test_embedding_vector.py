@@ -10,13 +10,17 @@ class TestEmbeddingVectorizer:
     def test_initialization(self, mock_transformer):
         """Test that the vectorizer initializes with the default model."""
         EmbeddingVectorizer()
-        mock_transformer.assert_called_once_with("all-MiniLM-L6-v2")
+
+        device = "cpu"
+        mock_transformer.assert_called_once_with("all-MiniLM-L6-v2", device=device)
 
     @patch("wiki.processors.text.vectorizers.embedding_vectorizer.SentenceTransformer")
     def test_initialization_custom_model(self, mock_transformer):
         """Test that the vectorizer initializes with a custom model."""
         EmbeddingVectorizer(model_name="custom-model")
-        mock_transformer.assert_called_once_with("custom-model")
+
+        device = "cpu"
+        mock_transformer.assert_called_once_with("custom-model", device=device)
 
     @patch("wiki.processors.text.vectorizers.embedding_vectorizer.SentenceTransformer")
     def test_vectorize_returns_embeddings_and_model(self, mock_transformer):
