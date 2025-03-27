@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      args:
+        REACT_APP_API_BASE_URL: http://localhost:8000
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
