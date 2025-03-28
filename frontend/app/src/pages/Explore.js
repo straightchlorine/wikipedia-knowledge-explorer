@@ -6,37 +6,57 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:800
 
 const SearchBar = () => {
     const [query, setQuery] = useState("");
+    const [submittedQuery, setSubmittedQuery] = useState(null);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        alert(`Searching for: ${query}`);
+        setSubmittedQuery(query);
     };
 
     return (
-        <div className="search-container">
-            <form onSubmit={handleSearch} className="search-form">
-                <Search className="search-icon" />
-                <input
-                    type="text"
-                    placeholder="Search..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="search-input"
-                />
-            </form>
+        <div>
+            <div className="search-container">
+                <form onSubmit={handleSearch} className="search-form" onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        handleSearch(e);
+                    }
+                }}
+                >
+                    <Search className="search-icon" />
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        className="search-input"
+                    />
+                </form>
+            </div>
+            {submittedQuery != null && <DataComponent query={submittedQuery} />}
         </div>
     );
 };
 
-const DataComponent = () => {
+const LoadingDots = () => {
+    return (
+        <div className="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    );
+};
+
+const DataComponent = ({ query }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
+            console.log(`Fetching ${API_BASE_URL}/articles/clusters?query=${query}"`);
             try {
-                const response = await fetch(`${API_BASE_URL}/articles/clusters?query=Python"`);
+                const response = await fetch(`${API_BASE_URL}/articles/clusters?query=${query}"`);
                 if (!response.ok) throw new Error("Failed to fetch data");
                 const result = await response.json();
                 setData(result);
@@ -46,31 +66,29 @@ const DataComponent = () => {
                 setLoading(false);
             }
         };
-
         fetchData();
-    }, []);
+    }, [query]);
 
-    if (loading) return <p>Loading...</p>;
-
+    if (loading) return <LoadingDots />;
     if (error) return <p>Error: {error}</p>;
 
     return (
         <div>
-            <h2>Fetched Data</h2>
-            <ul>
-                {JSON.stringify(data)}
-            </ul>
+            <div>
+                <h2>Results</h2>
+                <div className="result-list">
+                    {data.articles.map((item, index) => <div key={index}><p>{item.title}</p></div>)}
+                </div>
+            </div>
         </div>
     );
 };
 
 const Explore = () => {
-    console.log(API_BASE_URL);
     return (
         <>
             <h1>Explore articles</h1>
             <SearchBar />
-            <DataComponent />
         </>
     );
 };

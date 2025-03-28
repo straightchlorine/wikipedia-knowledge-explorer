@@ -6,10 +6,7 @@ import Explore from "./pages/Explore";
 import About from "./pages/Contact";
 import NoPage from "./pages/NoPage";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
 function App() {
-    console.log(API_BASE_URL);
     return (
         <BrowserRouter>
             <Routes>
