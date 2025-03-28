@@ -1,5 +1,5 @@
 import { Outlet, Link } from "react-router-dom";
-import logo from '../logo.svg';
+import logo from '../assets/logo.svg';
 import "./Layout.css"
 
 const Layout = () => {
@@ -8,7 +8,7 @@ const Layout = () => {
             <nav>
                 <ul>
                     <li>
-                        <img src={logo} />
+                        <img src={logo} alt="WKE Logo" />
                     </li>
                     <li>
                         <Link to="/">Home</Link>
