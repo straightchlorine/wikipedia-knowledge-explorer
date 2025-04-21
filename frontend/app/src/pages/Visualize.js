@@ -11,12 +11,17 @@ const Graph = ({ nodes, links }) => {
 
     useEffect(() => {
         const svg = d3.select(svgRef.current);
-        svg.selectAll('*').remove(); // Clear on re-render
+        svg.selectAll('*').remove();
 
         const width = 600;
         const height = 400;
 
         svg.attr('viewBox', [0, 0, width, height]);
+
+        const clusterSet = new Set(nodes.map(node => node.cluster));
+        const color = d3.scaleOrdinal()
+            .domain(clusterSet)
+            .range(d3.schemeCategory10);
 
         const simulation = d3.forceSimulation(nodes)
             .force('link', d3.forceLink(links).id(d => d.id).distance(100))
@@ -36,18 +41,38 @@ const Graph = ({ nodes, links }) => {
             .data(nodes)
             .join('circle')
             .attr('r', 8)
-            .attr('fill', 'steelblue')
+            .attr('fill', d => color(d.cluster))
             .call(drag(simulation));
 
         const label = svg.append('g')
             .selectAll('text')
             .data(nodes)
             .join('text')
-            .text(d => d.id) // or d.name if your object has that key
+            .text(d => d.id)
             .attr('font-size', 12)
-            .attr('fill', 'white') // 👈 sets text color
-            .attr('dx', 12) // horizontal offset from node
-            .attr('dy', '0.35em'); // vertical centering
+            .attr('fill', 'white')
+            .attr('dx', 12)
+            .attr('dy', '0.35em');
+
+        const legend = svg.append("g")
+            .attr("transform", "translate(20, 20)");
+
+        clusterSet.forEach((cluster, i) => {
+            const legendRow = legend.append("g")
+                .attr("transform", `translate(0, ${i * 20})`);
+
+            legendRow.append("rect")
+                .attr("width", 12)
+                .attr("height", 12)
+                .attr("fill", color(cluster));
+
+            legendRow.append("text")
+                .attr("x", 20)
+                .attr("y", 10)
+                .text(`Cluster ${cluster}`)
+                .attr("fill", "white")
+                .attr("font-size", "12px");
+        });
 
         node.append('title').text(d => d.id);
 
@@ -147,7 +172,7 @@ const Visualize = () => {
     data.articles.sort((a, b) => a.cluster - b.cluster);
 
     console.log(data);
-    const nodes = data.articles.map(item => ({ id: item.title }));
+    const nodes = data.articles.map(item => ({ id: item.title, cluster: item.cluster }));
     const links = GetLinks(data);
 
     return (
