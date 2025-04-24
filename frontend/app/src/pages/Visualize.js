@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import * as d3 from 'd3';
 import LoadingDots from "../common/LoadingDots"
 import ErrorTag from "../common/ErrorTag"
+import "./Visualize.css"
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
@@ -141,10 +142,8 @@ const GetLinks = data => {
 
     return links;
 };
-const Visualize = () => {
-    const [searchParams] = useSearchParams();
-    const query = searchParams.get('query');
 
+const GraphComponent = ({ query }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -176,9 +175,18 @@ const Visualize = () => {
     const links = GetLinks(data);
 
     return (
+        <Graph nodes={nodes} links={links} />
+    );
+};
+
+const Visualize = () => {
+    const [searchParams] = useSearchParams();
+    const query = searchParams.get('query');
+
+    return (
         <>
-            <h1>Visualization of {query}</h1>
-            <Graph nodes={nodes} links={links} />
+            <h1 className='center-h1'>Visualization of phrase: {query}</h1>
+            <GraphComponent query={query} />
         </>
     );
 };
