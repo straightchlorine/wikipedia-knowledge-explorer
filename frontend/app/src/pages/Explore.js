@@ -40,10 +40,38 @@ const SearchBar = () => {
     );
 };
 
+const Article = ({ index, title, open }) => {
+    return (
+        <div key={index}>
+            <p>{title}</p>
+            <p className="button-summary arrow" onClick={open}>Summary</p>
+        </div>
+    );
+};
+
+const PopUp = ({ closePopup }) => {
+
+    return (
+        <div className="popup-overlay" onClick={closePopup}>
+            <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                <h3>This is a popup!</h3>
+                <p>You can add anything here — text, forms, etc.</p>
+                <div className="x-button" onClick={closePopup}>X</div>
+            </div>
+        </div>
+    )
+};
+
 const DataComponent = ({ query }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [showPopup, setShowPopup] = useState(false);
+    const openPopup = () => setShowPopup(true);
+    const closePopup = () => setShowPopup(false);
+
+
     const navigate = useNavigate();
 
     const handleRedirect = () => {
@@ -72,20 +100,22 @@ const DataComponent = ({ query }) => {
     if (error) return <ErrorTag error={error} />;
 
     return (
-        <div>
-            <h2>Results</h2>
-            <h3 onClick={handleRedirect}>Visualize</h3>
-            <div className="result-list">
-                {data.articles.map((item, index) => <div key={index}><p>{item}</p></div>)}
+        <>
+            <div className="result-list-title">
+                <h2>Found articles</h2>
+                <div className="button-div node-style" onClick={handleRedirect}>Visualize</div>
             </div>
-        </div>
+            <div className="result-list">
+                {data.articles.map((item, index) => <Article index={index} title={item} open={openPopup} />)}
+            </div>
+            {showPopup && <PopUp closePopup={closePopup} />}
+        </>
     );
 };
 
 const Explore = () => {
     return (
         <>
-            <h1>Explore articles</h1>
             <SearchBar />
         </>
     );
