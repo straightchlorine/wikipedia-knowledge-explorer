@@ -7,7 +7,7 @@ import ErrorTag from "../common/ErrorTag"
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
-const SearchBar = () => {
+export const SearchBar = () => {
     const [query, setQuery] = useState("");
     const [submittedQuery, setSubmittedQuery] = useState(null);
 
@@ -40,7 +40,7 @@ const SearchBar = () => {
     );
 };
 
-const Article = ({ index, title, open }) => {
+export const Article = ({ index, title, open }) => {
     return (
         <div key={index}>
             <p>{title}</p>
@@ -49,7 +49,7 @@ const Article = ({ index, title, open }) => {
     );
 };
 
-const PopUp = ({ closePopup }) => {
+export const PopUp = ({ closePopup }) => {
 
     return (
         <div className="popup-overlay" onClick={closePopup}>
@@ -62,7 +62,7 @@ const PopUp = ({ closePopup }) => {
     )
 };
 
-const DataComponent = ({ query }) => {
+export const DataComponent = ({ query }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

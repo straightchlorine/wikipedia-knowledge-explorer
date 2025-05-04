@@ -116,7 +116,7 @@ const Graph = ({ nodes, links }) => {
     return <svg ref={svgRef} width="100%" height="400px" />;
 };
 
-const GetLinks = data => {
+export const GetLinks = data => {
     let links = [];
     let currentClusterIndex = data.articles[0].cluster;
     let previousClusterItems = [];
@@ -143,7 +143,7 @@ const GetLinks = data => {
     return links;
 };
 
-const GraphComponent = ({ query }) => {
+export const GraphComponent = ({ query }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -190,4 +190,4 @@ const Visualize = () => {
     );
 };
 
-export default Visualize;
+export default Visualize; 
