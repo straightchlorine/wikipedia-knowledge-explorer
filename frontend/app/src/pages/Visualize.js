@@ -11,7 +11,7 @@ const Graph = ({ nodes, links }) => {
 
     useEffect(() => {
         const svg = d3.select(svgRef.current);
-        svg.selectAll('*').remove(); // Clear on re-render
+        svg.selectAll('*').remove();
 
         const width = 600;
         const height = 400;
@@ -43,11 +43,11 @@ const Graph = ({ nodes, links }) => {
             .selectAll('text')
             .data(nodes)
             .join('text')
-            .text(d => d.id) // or d.name if your object has that key
+            .text(d => d.id)
             .attr('font-size', 12)
-            .attr('fill', 'white') // 👈 sets text color
-            .attr('dx', 12) // horizontal offset from node
-            .attr('dy', '0.35em'); // vertical centering
+            .attr('fill', 'white')
+            .attr('dx', 12)
+            .attr('dy', '0.35em');
 
         node.append('title').text(d => d.id);
 
