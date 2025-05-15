@@ -206,19 +206,3 @@
     margin: 5px;
     color: var(--warning-color);
 }
-
-.result-list {
-    width: 100%;
-}
-
-.result-list div{
-    display: flex;
-    align-items: center;
-    width: 100vw;
-    height: 50px;
-    border: 1px solid #dcdcdc;
-}
-
-.result-list div:hover {
-    background-color: #f8f9fa;
-}
