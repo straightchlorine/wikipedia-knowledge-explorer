@@ -170,7 +170,6 @@ const GraphComponent = ({ query }) => {
 
     data.articles.sort((a, b) => a.cluster - b.cluster);
 
-    console.log(data);
     const nodes = data.articles.map(item => ({ id: item.title, cluster: item.cluster }));
     const links = GetLinks(data);
 

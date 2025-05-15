@@ -66,18 +66,14 @@ const DataComponent = ({ query }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     const [showPopup, setShowPopup] = useState(false);
     const openPopup = () => setShowPopup(true);
     const closePopup = () => setShowPopup(false);
 
-
     const navigate = useNavigate();
-
     const handleRedirect = () => {
         navigate(`/visualize?query=${query}`);
     };
-
 
     useEffect(() => {
         const fetchData = async () => {
