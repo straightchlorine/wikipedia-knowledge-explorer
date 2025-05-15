@@ -21,8 +21,8 @@ This project allows users to:
 - [x] Articles are retrieved via the Wikipedia API.
 - [x] Simple K-Means clustering groups the articles by content similarity.
 - [ ] Articles are summarized using a text summarization library (e.g., sumy).
-- [ ] Frontend displays article titles, summaries, and indicates cluster labels.
-- [ ] Basic static graph visualization with D3.js (nodes colored by cluster).
+- [x] Frontend displays article titles, summaries, and indicates cluster labels.
+- [x] Basic static graph visualization with D3.js (nodes colored by cluster).
 
 ---
 
