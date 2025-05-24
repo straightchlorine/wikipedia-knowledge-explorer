@@ -130,34 +130,37 @@ Querying for the articles and its clusters:
 ```bash
 $ curl "http://localhost:8000/articles/clusters?query=Python" | jq
 {
-  "query": "Python",
+  "query": "python",
   "articles": [
     {
       "title": "Python (programming language)",
       "pageid": 23862,
-      "cluster": 2
-    },
-    {
-      "title": "Python",
-      "pageid": 46332325,
-      "cluster": 1
+      "cluster": 1,
+      "summarie": "Python high level general purpose programming language design philosophy emphasizes code readability use significant indentation python dynamically type checked garbage collected support multiple programming paradigm including structured particularly procedural object oriented functional programming often described battery included language."
     },
     {
       "title": "Monty Python",
       "pageid": 18942,
-      "cluster": 0
+      "cluster": 1,
+      "summarie": "Monty python also known python british comedy troupe formed consisting graham chapman john cleese terry gilliam eric idle terry jones michael palin group came prominence sketch comedy series montypython flying circus aired bbc."
+    },
+    {
+      "title": "Python",
+      "pageid": 46332325,
+      "cluster": 1,
+      "summarie": "Python may refer to: pythonidae family nonvenomous snake found africa asia australia python genus genus pythonidae. python mythology mythical serpent computing python programming language widely used high level programming language python native code compiler cmu common lisp. python internal project name perq computer workstation people python aenus th century bce student plato python painter ca bce vase painter poseidonia."
     },
     {
       "title": "Python (codename)",
       "pageid": 53672527,
-      "cluster": 0
+      "cluster": 2,
+      "summarie": "Python cold war contingency plan british government continuity government event nuclear war background following report strath committee. cgwhq codenamed burlington corsham wiltshire planned would reserve whitehall central government could moved emergency hopefully survive nuclear attack. cuban missile crisis prompted radical rethink continuity plan part thinking precautionary period ahead."
     },
     {
       "title": "Reticulated python",
       "pageid": 88595,
-      "cluster": 1
+      "cluster": 1,
+      "summarie": "Reticulated python malayopython reticulatus python specie native south southeast asia world longest snake third heaviest snake non venomous constrictor excellent swimmer reported far sea colonized many small island within range."
     }
   ]
 }
-```
-*Note*: clustering results **before** any meaningful summarization - for now its just first 100 letters. Better solution is on the way.
