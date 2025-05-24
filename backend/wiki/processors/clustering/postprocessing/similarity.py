@@ -72,4 +72,4 @@ class SimilarityPostProcessor(PostProcessor):
                 if most_similar is not None and highest_sim > self.similarity_threshold:
                     final_labels[i] = final_labels[most_similar]
 
-        return final_labels
+        return final_labels, texts
