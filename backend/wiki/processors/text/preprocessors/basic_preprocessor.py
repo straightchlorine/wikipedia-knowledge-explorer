@@ -6,7 +6,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
 from wiki.processors.text.preprocessors.preprocessor import TextPreprocessor
-from wiki.processors.text.summarizers.basic_summarizer import BasicSummarizer
+from wiki.processors.text.summarizers.bart_summarizer import BartSummarizer
 
 
 class BasicPreprocessor(TextPreprocessor):
@@ -20,7 +20,7 @@ class BasicPreprocessor(TextPreprocessor):
         self.lemmatizer = WordNetLemmatizer()
 
         # pass an object to act as an summariser
-        self.summarizer = BasicSummarizer()
+        self.summarizer = BartSummarizer()
 
     def preprocess(self, texts: list[str]) -> list[str]:
         """Preprocess texts using basic NLP techniques."""
