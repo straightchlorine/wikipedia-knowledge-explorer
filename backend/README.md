@@ -63,6 +63,19 @@ After that you just need to start it (options are according to NVIDIA's recommen
 $ docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -p 8000:8000 --rm wiki-explorer:gpu
 ```
 
+### Text Summarization
+Application includes pluggable text summarization modules, implemented using Python and available in wiki.processors.text.summarizers.
+
+You can switch between different summarization strategies depending on use case and resource availability:
+
+Available Summarizers
+| Name                   | Description                                                                                                                              |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `TruncatingSummarizer` | Very simple summarizer that truncates the text to 100 characters. Good for testing and fallbacks.                                        |
+| `TfidfSummarizer`      | Summarizer based on TF-IDF scoring of individual sentences. No ML required.                                                              |
+| `BartSummarizer`       | Pretrained transformer model (`facebook/bart-large-cnn`) for high-quality abstractive summarization. Uses Hugging Face's `transformers`. |
+
+
 ---
 ### Testing
 
@@ -71,6 +84,15 @@ Project uses `pytest`, so the following will run all the tests:
 ```bash
 $ pytest -v tests
 ```
+
+### Summarizer Tests
+Each summarizer module includes corresponding unit tests to validate core functionality:
+| Test File                        | Summary                                               |
+| -------------------------------- | ----------------------------------------------------- |
+| `test_basic_summarizer.py`       | Tests for the simple truncation-based summarizer.     |
+| `test_basic_summarizer_tfidf.py` | Tests for TF-IDF-based sentence-ranking summarizer.   |
+| `test_basic_summarizer_bart.py`  | Tests BART transformer summarization with edge cases. |
+
 
 ---
 ### Example usage:
