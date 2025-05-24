@@ -26,4 +26,5 @@ class BartSummarizer(TextSummarizer):
             min_length=30,
             do_sample=False
         )
-        return result[0]['summary_text']
+        summary = result[0]['summary_text'].strip().capitalize()
+        return summary
