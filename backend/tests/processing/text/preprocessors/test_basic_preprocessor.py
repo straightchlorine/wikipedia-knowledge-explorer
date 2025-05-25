@@ -6,6 +6,7 @@ class TestBasicPreprocessor:
     def test_preprocess_removes_html_tags(self):
         """Test that HTML tags are removed during preprocessing."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         text = ["<p>This is a paragraph</p>"]
         result = preprocessor.preprocess(text)
         assert "<p>" not in result[0]
@@ -14,6 +15,7 @@ class TestBasicPreprocessor:
     def test_preprocess_removes_citations(self):
         """Test that citations are removed during preprocessing."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         text = ["This is a text with a citation[1]."]
         result = preprocessor.preprocess(text)
         assert "[1]" not in result[0]
@@ -21,6 +23,7 @@ class TestBasicPreprocessor:
     def test_preprocess_removes_special_characters(self):
         """Test that special characters are removed during preprocessing."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         text = ["This text has special characters: !@#$%^&*()"]
         result = preprocessor.preprocess(text)
         assert "!@#$%^&*()" not in result[0]
@@ -28,6 +31,7 @@ class TestBasicPreprocessor:
     def test_preprocess_removes_digits(self):
         """Test that digits are removed during preprocessing."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         text = ["This text has digits: 12345"]
         result = preprocessor.preprocess(text)
         assert "12345" not in result[0]
@@ -35,6 +39,7 @@ class TestBasicPreprocessor:
     def test_preprocess_converts_to_lowercase(self):
         """Test that text is converted to lowercase."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         text = ["This Text Has UPPERCASE Letters"]
         result = preprocessor.preprocess(text)
         assert result[0] == result[0].lower()
@@ -42,6 +47,7 @@ class TestBasicPreprocessor:
     def test_preprocess_removes_stopwords(self):
         """Test that stopwords are removed during preprocessing."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         text = ["This is a sentence with stopwords."]
         result = preprocessor.preprocess(text)
 
@@ -52,6 +58,7 @@ class TestBasicPreprocessor:
     def test_preprocess_applies_lemmatization(self):
         """Test that lemmatization is applied during preprocessing."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         text = ["The cats are running and jumping"]
         result = preprocessor.preprocess(text)
 
@@ -63,6 +70,7 @@ class TestBasicPreprocessor:
     def test_preprocess_multiple_texts(self):
         """Test preprocessing multiple texts."""
         preprocessor = BasicPreprocessor()
+        preprocessor.summarizer = None
         texts = ["Text one!", "Text two!"]
         results = preprocessor.preprocess(texts)
         assert len(results) == 2

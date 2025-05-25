@@ -13,7 +13,7 @@ class PostProcessor(ABC):
         texts: list[str],
         vectors: np.ndarray,
         **kwargs,
-    ) -> list[int]:
+    ) -> tuple[list[int], list[str]]:
         """
         Post-process clustering results.
 

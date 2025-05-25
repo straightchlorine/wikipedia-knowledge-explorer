@@ -21,10 +21,10 @@ class TestSimilarityPostProcessor:
         texts = ["Text 1", "Text 2"]
         vectors = np.array([[0.1, 0.2], [0.3, 0.4]])
 
-        result = post_processor.process(labels, texts, vectors)
+        result, texts = post_processor.process(labels, texts, vectors)
 
         # those should be original, unchanged labels
-        assert result == labels
+        assert (result, texts) == (labels, texts)
 
     def test_process_short_texts(self):
         """Test processing with short texts that might be similar."""
@@ -45,9 +45,10 @@ class TestSimilarityPostProcessor:
             ]
         )
 
-        result = post_processor.process(labels, texts, vectors)
+        result, _ = post_processor.process(labels, texts, vectors)
 
         # first two in a single cluster, third in a separate one
+        assert result[0] == result[1]
         assert result[0] == result[1]
         assert result[2] != result[0]
 
@@ -63,7 +64,7 @@ class TestSimilarityPostProcessor:
         ]
 
         vectors = np.array([[0.9, 0.1], [0.9, 0.1], [0.1, 0.9]])
-        result = post_processor.process(labels, texts, vectors)
+        result, _ = post_processor.process(labels, texts, vectors)
 
         assert result == labels
 
@@ -81,7 +82,7 @@ class TestSimilarityPostProcessor:
             ]
         )
 
-        result = post_processor.process(labels, texts, vectors)
+        result, _ = post_processor.process(labels, texts, vectors)
 
         assert len(result) == 3
         assert all(isinstance(label, int) for label in result)
@@ -100,7 +101,7 @@ class TestSimilarityPostProcessor:
             ]
         )
 
-        result = post_processor.process(labels, texts, vectors)
+        result, _ = post_processor.process(labels, texts, vectors)
 
         # 2D vectors should be accordingly handled
         assert len(result) == 3
