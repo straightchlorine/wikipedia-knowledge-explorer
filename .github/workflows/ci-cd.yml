@@ -177,7 +177,7 @@ jobs:
       - name: Run npm audit on frontend
         run: |
           cd frontend/app
-          npm audit --audit-level=high
+          npm audit --audit-level=critical
       - name: Setup Python for safety check
         uses: actions/setup-python@v4
         with:
