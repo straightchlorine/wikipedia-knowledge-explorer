@@ -117,7 +117,7 @@ jobs:
           echo "Backend API is responding correctly"
       - name: Build frontend with backend URL
         run: |
-          cd frontend
+          cd frontend/app
           npm ci
           npm run build
         env:
