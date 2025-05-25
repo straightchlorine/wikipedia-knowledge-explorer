@@ -10,6 +10,8 @@ permissions:
   security-events: write
   actions: read
   contents: read
+  issues: write
+  pull-requests: write
 
 env:
   NODE_VERSION: '18'
