@@ -6,6 +6,11 @@ on:
   push:
     branches: [master, main]
 
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+
 env:
   NODE_VERSION: '18'
   PYTHON_VERSION: '3.13'
