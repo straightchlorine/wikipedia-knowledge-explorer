@@ -176,7 +176,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - name: Run npm audit on frontend
         run: |
-          cd frontend
+          cd frontend/app
           npm audit --audit-level=high
       - name: Setup Python for safety check
         uses: actions/setup-python@v4
