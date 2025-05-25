@@ -118,7 +118,7 @@ jobs:
       - name: Build frontend with backend URL
         run: |
           cd frontend/app
-          npm ci
+          npm install
           npm run build
         env:
           REACT_APP_API_BASE_URL: http://localhost:8000
@@ -139,7 +139,7 @@ jobs:
       - name: Build frontend Docker image (production)
         run: |
           cd frontend
-          docker build -t wiki-frontend:test -f Dockerfile.prod --build-arg REACT_APP_API_BASE_URL=http://localhost:8000 .
+          docker build -t wiki-frontend:test -f Dockerfile --build-arg REACT_APP_API_BASE_URL=http://localhost:8000 .
       - name: Build frontend Docker image (development)
         run: |
           cd frontend
