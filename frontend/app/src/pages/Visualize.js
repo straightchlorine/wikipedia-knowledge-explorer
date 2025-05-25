@@ -174,7 +174,7 @@ export const GraphComponent = ({ query, resultCount }) => {
             }
         };
         fetchData();
-    }, [query]);
+    }, [query, resultCount]);
 
     if (loading) return <LoadingDots />;
     if (error) return <ErrorTag error={error} />;
