@@ -53,7 +53,7 @@ describe("DataComponent", () => {
 
         render(
             <MemoryRouter>
-                <DataComponent query="crypto" />
+                <DataComponent query="crypto" settings={{ resultCount: 5 }} />
             </MemoryRouter>
         );
 
@@ -72,9 +72,11 @@ describe("DataComponent", () => {
             Promise.resolve({ ok: false })
         );
 
+        const empty = {};
+
         render(
             <MemoryRouter>
-                <DataComponent query="error-case" />
+                <DataComponent query="error-case" settings={empty} />
             </MemoryRouter>
         );
 
