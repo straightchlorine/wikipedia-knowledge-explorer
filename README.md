@@ -28,8 +28,8 @@ This project allows users to:
 
 ## Additional Features (Optional / Future Enhancements)
 
-- [ ] Use GPT-3 or other advanced models for more sophisticated summarization.
-- [ ] Support dynamic or interactive graph layouts (e.g., force-directed graphs with dragging).
+- [x] Use BART or other advanced models for more sophisticated summarization.
+- [x] Support dynamic or interactive graph layouts (e.g., force-directed graphs with dragging).
 - [ ] Add topic labeling to clusters (e.g., detect a phrase that describes each cluster).
 - [ ] Implement advanced search and filtering (e.g., search by date, popularity).
 - [ ] Provide interactive tooltips with larger previews or images.
