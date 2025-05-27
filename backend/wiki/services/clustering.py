@@ -4,7 +4,9 @@ from wiki.processors.text.preprocessors.basic_preprocessor import BasicPreproces
 from wiki.processors.text.vectorizers.embedding_vectorizer import EmbeddingVectorizer
 
 
-def cluster_articles(texts: list[str], max_clusters: int = 3) -> list[int]:
+def cluster_articles(
+    texts: list[str], max_clusters: int = 3
+) -> tuple[list[int], list[str]]:
     """
     Convert article text into vectors and apply clustering.
 
@@ -19,7 +21,7 @@ def cluster_articles(texts: list[str], max_clusters: int = 3) -> list[int]:
 
     # for none or one text, return [] or [0]
     if len(texts) <= 1:
-        return [0] * len(texts)
+        return [0] * len(texts), []
 
     # preprocess the contents
     processed_texts = BasicPreprocessor().preprocess(texts)

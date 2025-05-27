@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from fastapi.testclient import TestClient
 import pytest
@@ -28,7 +28,10 @@ async def test_cluster_endpoint_success(
     mock_fetch_content.side_effect = ["Content for article 1", "Content for article 2"]
 
     # clusters for the mock articles
-    mock_cluster.return_value = [0, 1]
+    mock_cluster.return_value = (
+        [0, 1],
+        ["Summary for article 1", "Summary for article2"],
+    )
 
     response = client.get("/articles/clusters?query=test")
     data = response.json()
@@ -79,7 +82,10 @@ async def test_cluster_endpoint_with_default_max_results(
     mock_fetch_content.side_effect = [f"Content for article {i}" for i in range(1, 6)]
 
     # mock cluster labels
-    mock_cluster.return_value = [i % 3 for i in range(5)]
+    mock_cluster.return_value = (
+        [i % 3 for i in range(5)],
+        [f"Summary for article {i}" for i in range(5)],
+    )
 
     # call endpoint without specifying max_results
     response = client.get("/articles/clusters?query=test")
@@ -118,7 +124,10 @@ async def test_cluster_endpoint_with_custom_max_results(
     ]
 
     # mock cluster labels
-    mock_cluster.return_value = [i % 4 for i in range(custom_max)]
+    mock_cluster.return_value = (
+        [i % 4 for i in range(custom_max)],
+        [f"Summary for article {i}" for i in range(custom_max)],
+    )
 
     # call endpoint with custom max_results
     response = client.get(f"/articles/clusters?query=test&max_results={custom_max}")
@@ -144,6 +153,8 @@ async def test_cluster_endpoint_with_zero_max_results(
     """
     # mock empty article list
     mock_fetch_articles.return_value = []
+
+    mock_cluster.return_value = ([], [])
 
     # call endpoint with max_results=0
     response = client.get("/articles/clusters?query=test&max_results=0")
@@ -201,7 +212,10 @@ async def test_cluster_endpoint_fewer_results_than_requested(
     ]
 
     # mock cluster labels
-    mock_cluster.return_value = [i % 2 for i in range(available_articles)]
+    mock_cluster.return_value = (
+        [i % 2 for i in range(available_articles)],
+        [f"Summary for article {i}" for i in range(available_articles)],
+    )
 
     # call endpoint
     response = client.get(f"/articles/clusters?query=test&max_results={max_results}")

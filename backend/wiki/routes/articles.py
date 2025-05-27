@@ -85,11 +85,12 @@ async def cluster_articles_endpoint(
         contents = await asyncio.gather(*tasks)
 
         # convert articles to tf-idf vectors and cluster them
-        labels = cluster_articles(contents, max_clusters=10)
+        labels,summaries = cluster_articles(contents, max_clusters=10)
 
         # attach cluster labels to each article in the result
         for i, article in enumerate(articles):
             article["cluster"] = int(labels[i])
+            article["summary"]= summaries[i]
 
         return {"query": query, "articles": articles}
     except Exception as e:

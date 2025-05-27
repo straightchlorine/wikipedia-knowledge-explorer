@@ -63,6 +63,19 @@ After that you just need to start it (options are according to NVIDIA's recommen
 $ docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -p 8000:8000 --rm wiki-explorer:gpu
 ```
 
+### Text Summarization
+Application includes pluggable text summarization modules, implemented using Python and available in wiki.processors.text.summarizers.
+
+You can switch between different summarization strategies depending on use case and resource availability:
+
+Available Summarizers
+| Name                   | Description                                                                                                                              |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `TruncatingSummarizer` | Very simple summarizer that truncates the text to 100 characters. Good for testing and fallbacks.                                        |
+| `TfidfSummarizer`      | Summarizer based on TF-IDF scoring of individual sentences. No ML required.                                                              |
+| `BartSummarizer`       | Pretrained transformer model (`facebook/bart-large-cnn`) for high-quality abstractive summarization. Uses Hugging Face's `transformers`. |
+
+
 ---
 ### Testing
 
@@ -71,6 +84,15 @@ Project uses `pytest`, so the following will run all the tests:
 ```bash
 $ pytest -v tests
 ```
+
+### Summarizer Tests
+Each summarizer module includes corresponding unit tests to validate core functionality:
+| Test File                        | Summary                                               |
+| -------------------------------- | ----------------------------------------------------- |
+| `test_basic_summarizer.py`       | Tests for the simple truncation-based summarizer.     |
+| `test_basic_summarizer_tfidf.py` | Tests for TF-IDF-based sentence-ranking summarizer.   |
+| `test_basic_summarizer_bart.py`  | Tests BART transformer summarization with edge cases. |
+
 
 ---
 ### Example usage:
@@ -108,34 +130,37 @@ Querying for the articles and its clusters:
 ```bash
 $ curl "http://localhost:8000/articles/clusters?query=Python" | jq
 {
-  "query": "Python",
+  "query": "python",
   "articles": [
     {
       "title": "Python (programming language)",
       "pageid": 23862,
-      "cluster": 2
+      "cluster": 0,
+      "summary": "Python high level general purpose programming language design philosophy emphasizes code readability use significant indentation python dynamically type checked garbage collected support multiple programming paradigm including structured particularly procedural object oriented functional programming often described battery included language."
     },
     {
       "title": "Python",
       "pageid": 46332325,
-      "cluster": 1
+      "cluster": 0,
+      "summary": "Python may refer to: pythonidae family nonvenomous snake found africa asia australia python genus genus pythonidae. python mythology mythical serpent computing python programming language widely used high level programming language python native code compiler cmu common lisp. python internal project name perq computer workstation people python aenus th century bce student plato python painter ca bce vase painter poseidonia."
     },
     {
       "title": "Monty Python",
       "pageid": 18942,
-      "cluster": 0
-    },
-    {
-      "title": "Python (codename)",
-      "pageid": 53672527,
-      "cluster": 0
+      "cluster": 0,
+      "summary": "Monty python also known python british comedy troupe formed consisting graham chapman john cleese terry gilliam eric idle terry jones michael palin group came prominence sketch comedy series montypython flying circus aired bbc."
     },
     {
       "title": "Reticulated python",
       "pageid": 88595,
-      "cluster": 1
+      "cluster": 0,
+      "summary": "Reticulated python malayopython reticulatus python specie native south southeast asia world longest snake third heaviest snake non venomous constrictor excellent swimmer reported far sea colonized many small island within range."
+    },
+    {
+      "title": "Python (codename)",
+      "pageid": 53672527,
+      "cluster": 1,
+      "summary": "Python cold war contingency plan british government continuity government event nuclear war background following report strath committee. cgwhq codenamed burlington corsham wiltshire planned would reserve whitehall central government could moved emergency hopefully survive nuclear attack. cuban missile crisis prompted radical rethink continuity plan part thinking precautionary period ahead."
     }
   ]
 }
-```
-*Note*: clustering results **before** any meaningful summarization - for now its just first 100 letters. Better solution is on the way.

@@ -43,14 +43,14 @@ class SimilarityPostProcessor(PostProcessor):
         texts: list[str],
         vectors: np.ndarray,
         **kwargs,
-    ) -> list[int]:
+    ) -> tuple[list[int], list[str]]:
         """Group very similar articles into the same cluster."""
         final_labels = labels.copy()
         n_samples = len(texts)
 
         # process only if there is enough samples
         if n_samples <= 2:
-            return final_labels
+            return final_labels, texts
 
         # compare each document with short text to others
         for i in range(n_samples):
@@ -72,4 +72,4 @@ class SimilarityPostProcessor(PostProcessor):
                 if most_similar is not None and highest_sim > self.similarity_threshold:
                     final_labels[i] = final_labels[most_similar]
 
-        return final_labels
+        return final_labels, texts
