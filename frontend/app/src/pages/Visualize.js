@@ -89,7 +89,7 @@ const Graph = ({ nodes, links }) => {
                 .attr("font-size", "12px");
         });
 
-        node.append("title").text((d) => d.id);
+        node.append("title").text((d) => d.summary);
 
         simulation.on("tick", () => {
             link
@@ -184,6 +184,7 @@ export const GraphComponent = ({ query, resultCount }) => {
     const nodes = data.articles.map((item) => ({
         id: item.title,
         cluster: item.cluster,
+        summary: item.summary,
     }));
     const links = GetLinks(data);
 
