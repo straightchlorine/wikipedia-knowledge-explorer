@@ -1,32 +1,29 @@
 import pytest
-from wiki.processors.text.summarizers.tf_idf_summarizer import BasicSummarizer
+from wiki.processors.text.summarizers.tf_idf_summarizer import TFIDFSummarizer
 
 
 class TestBasicSummarizerTFIDF:
     def test_summarize_returns_sentences(self):
-        """Test that summarizer returns summary with at least one sentence."""
-        summarizer = BasicSummarizer()
+        summarizer = TFIDFSummarizer()
         text = (
             "Natural language processing (NLP) is a subfield of linguistics, computer science, "
-            "and artificial intelligence concerned with the interactions between computers and human language."
-            " NLP is used to apply algorithms to identify and extract the natural language rules "
-            "such that the unstructured language data is converted into a form that computers can understand."
+            "and artificial intelligence concerned with the interactions between computers and human language. "
+            "It enables computers to understand and generate human language."
         )
-        result = summarizer.summarize(text)
-        assert isinstance(result, str)
-        assert len(result.strip()) > 0
-        assert len(result.split()) < len(text.split())
+        summary = summarizer.summarize(text, ratio=0.3)
+        assert isinstance(summary, str)
+        assert len(summary.strip()) > 0
+        assert len(summary.split(".")) < len(text.split("."))
 
     def test_summarize_empty_input(self):
-        """Ensure empty input raises an informative exception."""
-        summarizer = BasicSummarizer()
-        with pytest.raises(ValueError, match="empty vocabulary"):
-            summarizer.summarize("")
+        """Ensure empty input returns empty string."""
+        summarizer = TFIDFSummarizer()
+        result = summarizer.summarize("")
+        assert result == ""
 
     def test_summarize_single_sentence(self):
-        """Ensure summarizer returns the original sentence if it's the only one."""
-        summarizer = BasicSummarizer()
+        summarizer = TFIDFSummarizer()
         text = "This is a single sentence."
-        result = summarizer.summarize(text)
+        result = summarizer.summarize(text, ratio=1.0)
         assert isinstance(result, str)
         assert result.strip() == text
