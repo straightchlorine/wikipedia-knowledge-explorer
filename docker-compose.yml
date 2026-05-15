@@ -1,22 +1,41 @@
 services:
   frontend:
-    build: 
+    build:
       context: ./frontend
       args:
-        REACT_APP_API_BASE_URL: http://localhost:8000
+        VITE_API_BASE_URL: http://localhost:8000
+    image: ghcr.io/straightchlorine/wke-frontend:latest
     ports:
       - "8080:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - app-network
+    restart: unless-stopped
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
 
   backend:
     build: ./backend
+    image: ghcr.io/straightchlorine/wke-backend:latest
     ports:
       - "8000:8000"
     networks:
       - app-network
+    restart: unless-stopped
+    mem_limit: 4g
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs').read()\" || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
 networks:
   app-network:

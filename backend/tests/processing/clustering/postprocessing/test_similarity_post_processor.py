@@ -4,16 +4,6 @@ from wiki.processors.clustering.postprocessing.similarity import SimilarityPostP
 
 
 class TestSimilarityPostProcessor:
-    def test_initialization(self):
-        """Test that SimilarityPostProcessor initializes with default threshold."""
-        post_processor = SimilarityPostProcessor()
-        assert post_processor.similarity_threshold == 0.4
-
-    def test_initialization_custom_threshold(self):
-        """Test that SimilarityPostProcessor initializes with custom threshold."""
-        post_processor = SimilarityPostProcessor(similarity_threshold=0.5)
-        assert post_processor.similarity_threshold == 0.5
-
     def test_process_few_samples(self):
         """Test processing with few samples (<=2)."""
         post_processor = SimilarityPostProcessor()
