@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wke-ingress
+  labels:
+    app: wke
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    # SSE streaming knobs for /api/articles/clusters/stream (Phase 3).
+    # Rollback: remove the three lines below — handler still works as a
+    # buffered StreamingResponse (slow non-stream, no client breakage).
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - wke.piotrkrzysztof.dev
+      secretName: wke-tls
+  rules:
+    - host: wke.piotrkrzysztof.dev
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: wke-backend
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wke-frontend
+                port:
+                  number: 80

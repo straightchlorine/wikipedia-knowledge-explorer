@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wke-config
+  labels:
+    app: wke
+data:
+  WIKIPEDIA_API_URL: "https://en.wikipedia.org/w/api.php"
+  CORS_ORIGINS: "https://wke.piotrkrzysztof.dev"
+  SUMMARIZER_URL: "http://wke-summarizer.wke.svc.cluster.local:8000"
+  REDIS_URL: "redis://wke-cache.wke.svc.cluster.local:6379/0"
+  SUMMARIZER_TIMEOUT_SECONDS: "30"
+  SUMMARIZER_MAX_CONCURRENCY: "8"
+  SUMMARIZER_MODEL: "sshleifer/distilbart-cnn-6-6"
+  SUMMARIZER_MODEL_REVISION: "d2fde4ca965ba893255479612e4b801aa6500029"
+  SUMMARIZER_CACHE_TTL_SECONDS: "2592000"

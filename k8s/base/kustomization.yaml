@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: wke
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: wke
+      app.kubernetes.io/part-of: wke
+    includeSelectors: false
+
+resources:
+  - namespace.yaml
+  - wke-config-configmap.yaml
+  - backend-deployment.yaml
+  - backend-service.yaml
+  - frontend-deployment.yaml
+  - frontend-service.yaml
+  - summarizer-deployment.yaml
+  - summarizer-service.yaml
+  - redis-statefulset.yaml
+  - redis-service.yaml
+  - ingress.yaml
+  - network-policy.yaml
+
+images:
+  - name: ghcr.io/straightchlorine/wke-backend
+    newTag: latest
+  - name: ghcr.io/straightchlorine/wke-frontend
+    newTag: latest
+  - name: ghcr.io/straightchlorine/wke-summarizer
+    newTag: latest

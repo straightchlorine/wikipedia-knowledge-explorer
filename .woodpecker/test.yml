@@ -1,0 +1,23 @@
+when:
+  event: [push, pull_request]
+
+steps:
+  - name: backend-test
+    image: python:3.13-slim
+    commands:
+      - cd backend
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
+      - pip install pytest pytest-cov pytest-asyncio httpx
+      - pytest -v tests/ --cov=wiki --cov-report=xml --cov-report=html
+    environment:
+      - PYTHONPATH=.
+
+  - name: frontend-test
+    image: node:18-alpine
+    commands:
+      - cd frontend/app
+      - npm install
+      - npm test -- --coverage --watchAll=false --passWithNoTests
+    environment:
+      - CI=true

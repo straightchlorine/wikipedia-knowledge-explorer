@@ -1,0 +1,15 @@
+when:
+  event: [push, pull_request]
+
+steps:
+  - name: trivy-scan
+    image: aquasec/trivy
+    commands:
+      - trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+
+  - name: npm-audit
+    image: node:18-alpine
+    commands:
+      - cd frontend/app
+      - npm install
+      - npm audit --audit-level=critical

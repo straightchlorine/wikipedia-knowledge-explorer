@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wke-backend
+  labels:
+    app: wke-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: wke-backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP

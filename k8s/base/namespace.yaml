@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wke
+  labels:
+    name: wke
+    app.kubernetes.io/part-of: wke

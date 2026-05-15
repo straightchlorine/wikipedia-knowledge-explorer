@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wke-summarizer
+  labels:
+    app: wke-summarizer
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: wke-summarizer
+  template:
+    metadata:
+      labels:
+        app: wke-summarizer
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: wke-summarizer
+          image: ghcr.io/straightchlorine/wke-summarizer:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: wke-config
+          env:
+            # Weights are baked into the image at /opt/hf-cache by the
+            # Dockerfile, so HF_HOME points there. The directory is on the
+            # (read-only) root FS — transformers only reads, never writes.
+            - name: HF_HOME
+              value: "/opt/hf-cache"
+            - name: XDG_CACHE_HOME
+              value: "/tmp/.cache"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: "2000m"
+              memory: "2Gi"
+            limits:
+              cpu: "3000m"
+              memory: "4Gi"
+          # Weights are baked into the image (build-arg SUMMARIZER_MODEL_REVISION
+          # pins the HF commit), so /readyz turns green within a few seconds of
+          # process start — no cold-download budget needed.
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 512Mi

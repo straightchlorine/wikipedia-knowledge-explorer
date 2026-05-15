@@ -1,0 +1,72 @@
+# Woodpecker CI scaffold — wikipedia-knowledge-explorer
+#
+# Status: SCAFFOLD ONLY. Full multi-arch build/sign/deploy pipeline is
+# medium-severity (see REVIEW_infra.md "Propose-only" section). Existing
+# split pipelines live in .woodpecker/{test,lint,security,build}.yml and
+# still run; this root file documents the target shape.
+#
+# Target shape (to be authored as a follow-up):
+#   test → lint → security → build-multi-arch → push-ghcr → cosign-sign
+#     → deploy-hook (bump kustomization tag in fleet repo via git push)
+#
+# Required secrets (mounted via Woodpecker UI / settings):
+#   - ghcr_user             GHCR username (typically straightchlorine)
+#   - ghcr_token            GHCR write token
+#   - cosign_key            Cosign private key for image signing
+#   - cosign_password       Cosign key passphrase
+#   - fleet_deploy_key      SSH key with push access to codeberg.org/piotrkrzysztof/fleet
+#   - summarizer_model_revision   Pinned HuggingFace commit hash for the summarizer
+#
+# Conventions (matches user's other repos):
+#   - Registry: ghcr.io/straightchlorine/wke-{backend,frontend,summarizer}
+#   - Multi-arch: linux/amd64,linux/arm64  (OCI cluster is A1.Flex ARM)
+#   - Tag strategy: semver (`v0.1.0`) + `:latest` on master
+#   - Image-updater (argocd) writes semver back to fleet kustomization.yaml
+#
+when:
+  event: [push, pull_request]
+  branch: [master, main]
+
+steps:
+  - name: placeholder
+    image: alpine:3.20
+    commands:
+      - echo "Root .woodpecker.yml is a scaffold."
+      - echo "Real pipeline lives in .woodpecker/*.yml (split steps)."
+      - echo "TODO: replace with consolidated test → build → push → sign → deploy."
+
+  # Phase-3 addition: multi-arch build for the summarizer service.
+  # The model revision is baked at build time so prod and dev pin to the
+  # exact same weights (supply-chain integrity). See REVIEW_infra.md § A1.c.
+  - name: build-summarizer
+    image: woodpeckerci/plugin-docker-buildx
+    when:
+      event: [push]
+      branch: [master, main]
+    settings:
+      repo: ghcr.io/straightchlorine/wke-summarizer
+      dockerfile: backend/summarizer/Dockerfile
+      context: backend/summarizer
+      platforms: linux/amd64,linux/arm64
+      build_args_from_env:
+        - SUMMARIZER_MODEL_REVISION
+      tags:
+        - ${CI_COMMIT_SHA:0:7}
+        - latest
+      registry: ghcr.io
+      username:
+        from_secret: ghcr_user
+      password:
+        from_secret: ghcr_token
+    environment:
+      SUMMARIZER_MODEL_REVISION:
+        from_secret: summarizer_model_revision
+
+# TODO(infra): author the consolidated pipeline below.
+# - test (backend pytest + frontend vitest)
+# - lint (ruff/flake8 + eslint via vite)
+# - security (trivy fs + npm audit + cosign verify)
+# - build-backend (docker buildx multi-arch → ghcr.io/straightchlorine/wke-backend)
+# - build-frontend (docker buildx multi-arch → ghcr.io/straightchlorine/wke-frontend)
+# - sign (cosign sign --key ...)
+# - deploy (clone fleet, yq w-bump clusters/oci/wke/kustomization.yaml, git push)

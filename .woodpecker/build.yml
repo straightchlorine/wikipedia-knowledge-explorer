@@ -1,0 +1,39 @@
+depends_on:
+  - test
+
+when:
+  event: [push]
+  branch: [master, main]
+
+steps:
+  - name: build-backend
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      repo: registry.example.com/wiki-backend
+      dockerfile: backend/Dockerfile
+      context: backend
+      tags:
+        - ${CI_COMMIT_SHA}
+        - latest
+      registry: registry.example.com
+      username:
+        from_secret: registry_username
+      password:
+        from_secret: registry_password
+
+  - name: build-frontend
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      repo: registry.example.com/wiki-frontend
+      dockerfile: frontend/Dockerfile
+      context: frontend
+      tags:
+        - ${CI_COMMIT_SHA}
+        - latest
+      build_args:
+        - REACT_APP_API_BASE_URL=/api
+      registry: registry.example.com
+      username:
+        from_secret: registry_username
+      password:
+        from_secret: registry_password

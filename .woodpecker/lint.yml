@@ -1,0 +1,17 @@
+when:
+  event: [push, pull_request]
+
+steps:
+  - name: backend-lint
+    image: python:3.13-slim
+    commands:
+      - pip install flake8
+      - flake8 backend/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      - flake8 backend/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  - name: frontend-lint
+    image: node:18-alpine
+    commands:
+      - cd frontend/app
+      - npm install
+      - npm run lint --if-present

@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wke-backend
+  labels:
+    app: wke-backend
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: wke-backend
+  template:
+    metadata:
+      labels:
+        app: wke-backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: wke-backend
+          image: ghcr.io/straightchlorine/wke-backend:latest
+          imagePullPolicy: IfNotPresent
+          # X-Forwarded-For trust required because slowapi keys on the
+          # client IP (wiki/limits.py uses get_ipaddr). 10.42.0.0/16 is the
+          # k3s default pod CIDR; widen if the OCI cluster differs.
+          args:
+            - "uvicorn"
+            - "wiki.main:wiki_exp"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8000"
+            - "--proxy-headers"
+            - "--forwarded-allow-ips"
+            - "10.42.0.0/16"
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: wke-config
+          env:
+            - name: HF_HOME
+              value: "/tmp/hf-cache"
+            - name: TRANSFORMERS_CACHE
+              value: "/tmp/hf-cache"
+            - name: XDG_CACHE_HOME
+              value: "/tmp/.cache"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          livenessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 4Gi
