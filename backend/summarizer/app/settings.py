@@ -1,9 +1,10 @@
 """Configuration for the summarizer inference service.
 
-Read from environment via pydantic-settings. The model identity
-(name + revision) is required: the image is built against a specific
-commit hash, and the running container must echo that revision in
-every SummarizeResponse for cache-key + audit purposes.
+Read from environment.
+
+The model identity (name + revision) is required:
+the image is built against a specific commit hash, and the running container
+must echo that revision in every SummarizeResponse for cache-key + audit purposes.
 """
 
 from functools import lru_cache
@@ -25,7 +26,8 @@ class Settings(BaseSettings):
     )
     summarizer_model_revision: str = Field(
         ...,
-        description="HuggingFace model revision (commit SHA). Required — pinned at image build time.",
+        description="HuggingFace model revision (commit SHA)."
+        + "Required - pinned at image build time.",
     )
 
     max_input_length: int = Field(default=1024, ge=64, le=4096)

@@ -1,12 +1,11 @@
 # Multi-stage build for the wke-summarizer service.
 #
 # Model weights are pre-baked into the image during the builder stage
-# so runtime pods boot in seconds instead of spending 60+ s downloading
-# weights on first request. The revision (HF commit SHA) is required
-# at build time — without it, the build fails fast. Look up the
-# current pin via:
-#   curl -s https://huggingface.co/api/models/sshleifer/distilbart-cnn-6-6 \
-#     | jq -r .sha
+# so runtime pods boot in seconds.
+# The revision is required at build time - without it, the build fails.
+#
+# Look up the current pin via:
+#   curl -s https://huggingface.co/api/models/sshleifer/distilbart-cnn-6-6 | jq -r .sha
 # and pass it as `--build-arg SUMMARIZER_MODEL_REVISION=<sha>`.
 #
 # Multi-arch (linux/amd64 + linux/arm64) is the infra-builder's
@@ -29,23 +28,15 @@ WORKDIR /build
 
 COPY --from=ghcr.io/astral-sh/uv:0.11.14@sha256:1025398289b62de8269e70c45b91ffa37c373f38118d7da036fb8bb8efc85d97 /uv /uvx /bin/
 
-COPY pyproject.toml ./
-# CPU-only torch — the inference path runs on CPU (no GPU on OCI A1.Flex
-# nor on most dev machines). The default wheel pulls ~2.7 GB of CUDA
-# runtime that's pure ballast; the +cpu wheel is ~150 MB.
-RUN uv pip install --system --prefix=/install \
+COPY pyproject.toml uv.lock ./
+RUN uv export --frozen --no-dev --no-emit-project -o /tmp/requirements.txt \
+    && uv pip install --system --prefix=/install \
         --extra-index-url https://download.pytorch.org/whl/cpu \
-        "fastapi==0.135.3" \
-        "uvicorn==0.43.0" \
-        "pydantic==2.13.2" \
-        "pydantic-settings==2.12.0" \
-        "slowapi==0.1.9" \
-        "transformers==5.5.0" \
-        "torch==2.11.0+cpu"
+        -r /tmp/requirements.txt
 
 # Pre-bake model weights so runtime pods skip the cold download.
-# transformers 5.x dropped the `pipeline("summarization", ...)` shortcut,
-# so we load via AutoTokenizer + AutoModelForSeq2SeqLM directly — same
+# Transformers 5.x dropped the `pipeline("summarization", ...)` shortcut.
+# Load via AutoTokenizer + AutoModelForSeq2SeqLM directly - same
 # shape used by app/model.py:_HfSeq2SeqBackend.
 RUN PYTHONPATH=/install/lib/python3.13/site-packages python -c "\
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM; \
@@ -57,7 +48,7 @@ FROM ${PYTHON_BASE} AS runtime
 LABEL org.opencontainers.image.source="https://github.com/straightchlorine/wikipedia-knowledge-explorer"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.title="wke-summarizer"
-LABEL org.opencontainers.image.description="Wikipedia Knowledge Explorer — summarization inference service"
+LABEL org.opencontainers.image.description="Wikipedia Knowledge Explorer - summarization inference service"
 
 ARG SUMMARIZER_MODEL=sshleifer/distilbart-cnn-6-6
 ARG SUMMARIZER_MODEL_REVISION

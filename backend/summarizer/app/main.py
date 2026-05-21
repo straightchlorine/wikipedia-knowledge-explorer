@@ -1,7 +1,7 @@
 """FastAPI entrypoint for the summarizer service.
 
 Endpoints:
-  POST /summarize  — wire protocol per REVIEW_backend.md A1.4
+  POST /summarize  — wire protocol
   GET  /healthz    — 200 once weights are resident in memory
   GET  /readyz     — 200 once /healthz AND a warmup inference has run
 
@@ -102,7 +102,7 @@ def create_app(backend_factory: BackendFactory | None = None) -> FastAPI:
     return app
 
 
-async def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+async def _rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(
         status_code=429,
         content={"detail": "Rate limit exceeded"},

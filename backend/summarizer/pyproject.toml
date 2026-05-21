@@ -4,21 +4,31 @@ version = "0.1.0"
 description = "Wikipedia Knowledge Explorer - Summarization inference service"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi==0.135.3",
-    "uvicorn==0.43.0",
-    "pydantic==2.13.2",
-    "pydantic-settings==2.12.0",
+    "fastapi==0.136.1",
+    "uvicorn==0.47.0",
+    "pydantic==2.13.4",
+    "pydantic-settings==2.14.1",
     "slowapi==0.1.9",
-    "transformers==5.5.0",
-    "torch==2.11.0",
+    "transformers==5.9.0",
+    "torch==2.12.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest==9.0.2",
+    "pytest==9.0.3",
     "pytest-asyncio==1.3.0",
     "httpx==0.28.1",
 ]
+
+# The inference path runs on CPU.
+# Without this, `torch` resolves to the CUDA-bundled wheel.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

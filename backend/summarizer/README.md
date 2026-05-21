@@ -3,7 +3,7 @@
 Standalone FastAPI inference service that fronts a HuggingFace
 `summarization` pipeline. The API pod (`backend/wiki/`) calls
 `POST /summarize` over the cluster network; this service owns the
-heavy ML deps (`torch`, `transformers`) so the API image stays slim.
+ML deps (`torch`, `transformers`) so the API image stays slim.
 
 ## Wire protocol
 
@@ -84,9 +84,7 @@ docker build \
 ```
 
 The build downloads weights inside the builder stage and copies the
-HF cache into the runtime stage — runtime pods skip the cold-load
-cliff. Image size: ~2.0 GB (torch CPU-only wheel ~150 MB, weights
-~900 MB, slim Python + transformers ~900 MB).
+HF cache into the runtime stage. Pods skip the cold-load.
 
 Multi-arch (amd64 + arm64) is the infra-builder's concern, driven via
 `docker buildx`. The Dockerfile itself takes no `--platform` flag.
@@ -97,10 +95,9 @@ Multi-arch (amd64 + arm64) is the infra-builder's concern, driven via
   we drive `AutoTokenizer` + `AutoModelForSeq2SeqLM` directly. See
   `app/model.py:_HfSeq2SeqBackend`.
 - torch is installed CPU-only (`torch==2.11.0+cpu` from the PyTorch
-  CPU index). OCI A1.Flex has no GPU; pulling the full CUDA wheel
-  would balloon the image to ~6 GB for zero benefit.
+  CPU index). Infrastructure concern.
 - The `BackendFactory` seam in `app/model.py` is what makes the
-  test suite tolerable — the real `transformers` package ships as a
+  test suite reliable. The real `transformers` package ships as a
   `_LazyModule` whose attribute mutation swaps `sys.modules` entries,
   so naive `monkeypatch.setattr("transformers.pipeline", ...)` is
   unreliable. Inject the backend factory through the constructor
