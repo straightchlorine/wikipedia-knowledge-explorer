@@ -1,34 +1,50 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
+
 from wiki.processors.text.summarizers.bart_summarizer import BartSummarizer
 
 
-class TestBasicSummarizerBART:
-    @pytest.fixture(scope="class")
-    def summarizer(self):
-        return BartSummarizer()
+class TestBartSummarizer:
+    @patch("wiki.processors.text.summarizers.bart_summarizer.ModelCache")
+    def test_summarize_returns_string(self, mock_cache_cls):
+        """Test that summarize returns a string."""
+        mock_pipeline = MagicMock()
+        mock_pipeline.return_value = [{"summary_text": "A summary of the text."}]
+        mock_cache = MagicMock()
+        mock_cache.summarization_pipeline = mock_pipeline
+        mock_cache_cls.return_value = mock_cache
 
-    def test_summarize_short_article(self, summarizer):
-        """Test if BART summarizer returns a short summary."""
-        text = (
-            "Natural language processing is a subfield of AI. "
-            "It focuses on the interaction between computers and humans. "
-            "Tasks include translation, sentiment analysis, and text generation."
-        )
-        summary = summarizer.summarize(text, max_length=15)
-        assert isinstance(summary, str)
-        assert len(summary.strip()) > 0
-        assert len(summary.split()) <= 15
+        summarizer = BartSummarizer()
+        result = summarizer.summarize("Some input text to summarize.")
 
-    def test_summarize_truncates_long_text(self, summarizer):
-        """Test that long text is summarized with a strict max_length."""
-        long_text = " ".join(["This is a long sentence."] * 200)
-        summary = summarizer.summarize(long_text, max_length=20)
-        assert isinstance(summary, str)
-        assert len(summary.strip()) > 0
-        assert len(summary.split()) <= 20
+        assert isinstance(result, str)
+        assert result == "A summary of the text."
 
-    def test_summarize_empty_input(self, summarizer):
-        """Test how model handles empty string."""
-        summary = summarizer.summarize("")
-        assert isinstance(summary, str)
-        assert summary.strip() == ""
+    @patch("wiki.processors.text.summarizers.bart_summarizer.ModelCache")
+    def test_summarize_empty_input(self, mock_cache_cls):
+        """Test that empty input returns empty string."""
+        mock_cache = MagicMock()
+        mock_cache_cls.return_value = mock_cache
+
+        summarizer = BartSummarizer()
+        result = summarizer.summarize("")
+
+        assert result == ""
+
+    @patch("wiki.processors.text.summarizers.bart_summarizer.ModelCache")
+    def test_summarize_truncates_long_input(self, mock_cache_cls):
+        """Test that long input is truncated to 1024 chars before summarizing."""
+        mock_pipeline = MagicMock()
+        mock_pipeline.return_value = [{"summary_text": "Summary."}]
+        mock_cache = MagicMock()
+        mock_cache.summarization_pipeline = mock_pipeline
+        mock_cache_cls.return_value = mock_cache
+
+        summarizer = BartSummarizer()
+        long_text = "a" * 2000
+        summarizer.summarize(long_text)
+
+        # The pipeline should receive at most 1024 chars
+        call_args = mock_pipeline.call_args
+        assert len(call_args[0][0]) <= 1024

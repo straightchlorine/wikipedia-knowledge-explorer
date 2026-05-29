@@ -1,16 +1,13 @@
-from transformers import pipeline
 from wiki.processors.text.summarizers.summarizer import TextSummarizer
+from wiki.services.model_cache import ModelCache
 
 
 class BartSummarizer(TextSummarizer):
     """Summarizer using a pretrained transformer model."""
 
     def __init__(self):
-        self.summarizer = pipeline(
-            "summarization",
-            model="facebook/bart-large-cnn",
-            tokenizer="facebook/bart-large-cnn"
-        )
+        cache = ModelCache()
+        self.summarizer = cache.summarization_pipeline
 
     def summarize(self, texts: str, max_length: int = 130, min_length: int = 30) -> str:
         """Generate summary using transformer model with optional length control."""
@@ -26,8 +23,8 @@ class BartSummarizer(TextSummarizer):
             input_text,
             max_length=max_length,
             min_length=min(min_length, max_length - 1),
-            do_sample=False
+            do_sample=False,
         )
 
-        summary = result[0]['summary_text'].strip().capitalize()
+        summary = result[0]["summary_text"].strip().capitalize()
         return summary

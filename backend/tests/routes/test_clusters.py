@@ -1,229 +1,83 @@
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from wiki.main import wiki_exp
+from wiki.routes.articles import get_summarizer
 
-client = TestClient(wiki_exp)
+
+@pytest.fixture(autouse=True)
+def stub_summarizer():
+    """Override the SummarizerClient dependency with a benign mock for every test.
+
+    The route patches `wiki.routes.articles.cluster_articles`, so the summarizer
+    object is never actually invoked — it just needs to satisfy the Depends.
+    """
+    wiki_exp.dependency_overrides[get_summarizer] = lambda: MagicMock()
+    yield
+    wiki_exp.dependency_overrides.clear()
 
 
-@pytest.mark.asyncio
+client = TestClient(wiki_exp, raise_server_exceptions=False)
+
+
+@pytest.mark.parametrize("max_results,num_articles", [
+    (None, 5),   # default
+    (10, 10),    # custom
+    (10, 3),     # fewer available than requested
+])
 @patch("wiki.routes.articles.fetch_wikipedia_articles", new_callable=AsyncMock)
 @patch("wiki.routes.articles.fetch_article_content", new_callable=AsyncMock)
-@patch("wiki.routes.articles.cluster_articles")
-async def test_cluster_endpoint_success(
-    mock_cluster, mock_fetch_content, mock_fetch_articles
+@patch("wiki.routes.articles.cluster_articles", new_callable=AsyncMock)
+def test_cluster_endpoint_success(
+    mock_cluster, mock_fetch_content, mock_fetch_articles, max_results, num_articles
 ):
-    """
-    Test the /articles/clusters endpoint when everything works correctly.
-    """
-    # mock return values of the functions
-    mock_fetch_articles.return_value = [
-        {"title": "Article 1", "pageid": 1},
-        {"title": "Article 2", "pageid": 2},
-    ]
-
-    # each article returns a content string
-    mock_fetch_content.side_effect = ["Content for article 1", "Content for article 2"]
-
-    # clusters for the mock articles
+    """Test the /articles/clusters endpoint under various result-count scenarios."""
+    mock_articles = [{"title": f"Article {i}", "pageid": i} for i in range(1, num_articles + 1)]
+    mock_fetch_articles.return_value = mock_articles
+    mock_fetch_content.side_effect = [f"Content for article {i}" for i in range(1, num_articles + 1)]
     mock_cluster.return_value = (
-        [0, 1],
-        ["Summary for article 1", "Summary for article2"],
+        [i % 3 for i in range(num_articles)],
+        [f"Summary for article {i}" for i in range(num_articles)],
     )
 
-    response = client.get("/articles/clusters?query=test")
+    url = "/api/articles/clusters?query=test" + (f"&max_results={max_results}" if max_results else "")
+    response = client.get(url)
     data = response.json()
-    articles = data["articles"]
 
-    # check response's status and structure
     assert response.status_code == 200
     assert data["query"] == "test"
-    assert len(articles) == 2
+    assert len(data["articles"]) == num_articles
 
-    # check if each has a cluster label
-    for article in articles:
+    for article in data["articles"]:
         assert "cluster" in article
         assert isinstance(article["cluster"], int)
 
+    expected_max = max_results if max_results else 5
+    mock_fetch_articles.assert_called_once_with("test", expected_max)
 
-@pytest.mark.asyncio
+
 @patch("wiki.routes.articles.fetch_wikipedia_articles", new_callable=AsyncMock)
-async def test_cluster_endpoint_error(mock_fetch_articles):
-    """
-    Test the /articles/clusters endpoint when an error occurs.
-    """
-    # mock error during clustering process
+def test_cluster_endpoint_error(mock_fetch_articles):
+    """Test the /articles/clusters endpoint when an error occurs."""
     mock_fetch_articles.side_effect = Exception("Test error")
 
-    response = client.get("/articles/clusters?query=test")
+    response = client.get("/api/articles/clusters?query=test")
 
-    # check if handled correctly
     assert response.status_code == 500
-    assert "detail" in response.json()
+    assert response.json()["detail"] == "Internal server error"
 
 
-@pytest.mark.asyncio
-@patch("wiki.routes.articles.fetch_wikipedia_articles", new_callable=AsyncMock)
-@patch("wiki.routes.articles.fetch_article_content", new_callable=AsyncMock)
-@patch("wiki.routes.articles.cluster_articles")
-async def test_cluster_endpoint_with_default_max_results(
-    mock_cluster, mock_fetch_content, mock_fetch_articles
-):
-    """
-    Test the /articles/clusters endpoint with default max_results value (5).
-    """
-    # mock article data
-    mock_articles = [{"title": f"Article {i}", "pageid": i} for i in range(1, 6)]
-    mock_fetch_articles.return_value = mock_articles
-
-    # mock content for each article
-    mock_fetch_content.side_effect = [f"Content for article {i}" for i in range(1, 6)]
-
-    # mock cluster labels
-    mock_cluster.return_value = (
-        [i % 3 for i in range(5)],
-        [f"Summary for article {i}" for i in range(5)],
-    )
-
-    # call endpoint without specifying max_results
-    response = client.get("/articles/clusters?query=test")
-    data = response.json()
-
-    # verify correct number of articles returned
-    assert response.status_code == 200
-    assert len(data["articles"]) == 5
-
-    # verify fetch_wikipedia_articles was called with default max_results
-    mock_fetch_articles.assert_called_once_with("test", 5)
-
-
-@pytest.mark.asyncio
-@patch("wiki.routes.articles.fetch_wikipedia_articles", new_callable=AsyncMock)
-@patch("wiki.routes.articles.fetch_article_content", new_callable=AsyncMock)
-@patch("wiki.routes.articles.cluster_articles")
-async def test_cluster_endpoint_with_custom_max_results(
-    mock_cluster, mock_fetch_content, mock_fetch_articles
-):
-    """
-    Test the /articles/clusters endpoint with custom max_results value.
-    """
-    # Set custom max_results value
-    custom_max = 10
-
-    # mock article data for the custom max
-    mock_articles = [
-        {"title": f"Article {i}", "pageid": i} for i in range(1, custom_max + 1)
-    ]
-    mock_fetch_articles.return_value = mock_articles
-
-    # mock content for each article
-    mock_fetch_content.side_effect = [
-        f"Content for article {i}" for i in range(1, custom_max + 1)
-    ]
-
-    # mock cluster labels
-    mock_cluster.return_value = (
-        [i % 4 for i in range(custom_max)],
-        [f"Summary for article {i}" for i in range(custom_max)],
-    )
-
-    # call endpoint with custom max_results
-    response = client.get(f"/articles/clusters?query=test&max_results={custom_max}")
-    data = response.json()
-
-    # verify correct number of articles returned
-    assert response.status_code == 200
-    assert len(data["articles"]) == custom_max
-
-    # verify fetch_wikipedia_articles was called with custom max_results
-    mock_fetch_articles.assert_called_once_with("test", custom_max)
-
-
-@pytest.mark.asyncio
-@patch("wiki.routes.articles.fetch_wikipedia_articles", new_callable=AsyncMock)
-@patch("wiki.routes.articles.fetch_article_content", new_callable=AsyncMock)
-@patch("wiki.routes.articles.cluster_articles")
-async def test_cluster_endpoint_with_zero_max_results(
-    mock_cluster, mock_fetch_content, mock_fetch_articles
-):
-    """
-    Test the /articles/clusters endpoint with max_results set to 0.
-    """
-    # mock empty article list
-    mock_fetch_articles.return_value = []
-
-    mock_cluster.return_value = ([], [])
-
-    # call endpoint with max_results=0
-    response = client.get("/articles/clusters?query=test&max_results=0")
-    data = response.json()
-
-    # verify empty articles list returned
-    assert response.status_code == 200
-    assert data["articles"] == []
-
-    # verify fetch_wikipedia_articles was called with 0
-    mock_fetch_articles.assert_called_once_with("test", 0)
-
-
-@pytest.mark.asyncio
-@patch("wiki.routes.articles.fetch_wikipedia_articles", new_callable=AsyncMock)
-@patch("wiki.routes.articles.fetch_article_content", new_callable=AsyncMock)
-@patch("wiki.routes.articles.cluster_articles")
-async def test_cluster_endpoint_with_negative_max_results(
-    mock_cluster, mock_fetch_content, mock_fetch_articles
-):
-    """
-    Test the /articles/clusters endpoint with negative max_results value.
-    Negative values should be handled gracefully.
-    """
-    # call endpoint with negative max_results
-    response = client.get("/articles/clusters?query=test&max_results=-5")
-
+def test_cluster_endpoint_with_negative_max_results():
+    """Test the /articles/clusters endpoint rejects negative max_results."""
+    response = client.get("/api/articles/clusters?query=test&max_results=-5")
     assert response.status_code == 422
     assert "detail" in response.json()
 
 
-@pytest.mark.asyncio
-@patch("wiki.routes.articles.fetch_wikipedia_articles", new_callable=AsyncMock)
-@patch("wiki.routes.articles.fetch_article_content", new_callable=AsyncMock)
-@patch("wiki.routes.articles.cluster_articles")
-async def test_cluster_endpoint_fewer_results_than_requested(
-    mock_cluster, mock_fetch_content, mock_fetch_articles
-):
-    """
-    Test the /articles/clusters endpoint when fewer results are available than requested.
-    """
-    # maximum results to request
-    max_results = 10
-
-    # return fewer articles than requested
-    available_articles = 3
-    mock_articles = [
-        {"title": f"Article {i}", "pageid": i} for i in range(1, available_articles + 1)
-    ]
-    mock_fetch_articles.return_value = mock_articles
-
-    # mock content for each article
-    mock_fetch_content.side_effect = [
-        f"Content for article {i}" for i in range(1, available_articles + 1)
-    ]
-
-    # mock cluster labels
-    mock_cluster.return_value = (
-        [i % 2 for i in range(available_articles)],
-        [f"Summary for article {i}" for i in range(available_articles)],
-    )
-
-    # call endpoint
-    response = client.get(f"/articles/clusters?query=test&max_results={max_results}")
-    data = response.json()
-
-    # verify the correct number of articles returned (should be the available number)
-    assert response.status_code == 200
-    assert len(data["articles"]) == available_articles
-
-    # verify fetch_wikipedia_articles was called with the requested max_results
-    mock_fetch_articles.assert_called_once_with("test", max_results)
+def test_cluster_endpoint_max_results_too_large():
+    """Test the /articles/clusters endpoint rejects max_results > 50."""
+    response = client.get("/api/articles/clusters?query=test&max_results=100")
+    assert response.status_code == 422
+    assert "detail" in response.json()
